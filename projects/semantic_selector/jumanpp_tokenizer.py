@@ -33,7 +33,7 @@ class InputTagTokenizer(object):
             try:
                 result = self.tokenizer.analysis(text)
                 for mrph in result.mrph_list():
-                    if mrph.hinsi == '名詞' or mrph.imis == '品詞推定:名詞':
+                    if mrph.hinsi in ['名詞', '動詞', '形容詞'] or mrph.imis in ['品詞推定:名詞']:
                         ret.append(mrph.midasi)
 
             except IndexError:
