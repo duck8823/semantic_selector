@@ -4,8 +4,8 @@ from pyknp import Jumanpp
 from bs4 import BeautifulSoup
 
 
-class JumanppInputTagTokenizer(object):
-    class __JumanppInputTagTokenizer(object):
+class InputTagTokenizer(object):
+    class __InputTagTokenizer(object):
         def __init__(self):
             self.tokenizer = Jumanpp()
             self.target_attributes = [
@@ -101,9 +101,9 @@ class JumanppInputTagTokenizer(object):
     instance = None
 
     def __init__(self):
-        if not JumanppInputTagTokenizer.instance:
-            singleton_instance = JumanppInputTagTokenizer.__JumanppInputTagTokenizer()
-            JumanppInputTagTokenizer.instance = singleton_instance
+        if not InputTagTokenizer.instance:
+            singleton_instance = InputTagTokenizer.__InputTagTokenizer()
+            InputTagTokenizer.instance = singleton_instance
 
     def __getattr__(self, name):
         return getattr(self.instance, name)

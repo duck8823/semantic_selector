@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from gensim import corpora, models, similarities
 from sklearn.linear_model import LogisticRegression
-from semantic_selector import jumanpp_tokenizer
+from semantic_selector import jumanpp_tokenizer as tokenizer
 from semantic_selector import datasource
 
 
@@ -40,7 +40,7 @@ class LsiModel(object):
         self.lr = lr
 
     def inference_html(self, target_tag):
-        input_tag_tokenizer = jumanpp_tokenizer.JumanppInputTagTokenizer()
+        input_tag_tokenizer = tokenizer.InputTagTokenizer()
         tokens = input_tag_tokenizer.get_attrs_value(target_tag)
         vec_bow = self.dictionary.doc2bow(tokens)
         vec_lsi = self.__sparse_to_dense(self.lsi[vec_bow])
@@ -60,7 +60,7 @@ class LsiModel(object):
         return ret
 
     def __convert_training(self, training):
-        input_tag_tokenizer = jumanpp_tokenizer.JumanppInputTagTokenizer()
+        input_tag_tokenizer = tokenizer.InputTagTokenizer()
         word_vecs = []
         labels = []
         test_labels = []
