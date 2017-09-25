@@ -17,6 +17,17 @@ python -m venv venv
 source venv/bin/activate
 pip3 install -r projects/requirements.txt
 
+# use juman++
+brew install boost
+curl -O http://lotus.kuee.kyoto-u.ac.jp/nl-resource/jumanpp/jumanpp-1.02.tar.xz
+tar jxvf jumanpp-1.02.tar.xz
+cd jumanpp
+./configure
+make
+make install
+
+curl -O http://lotus.kuee.kyoto-u.ac.jp/nl-resource/pyknp/pyknp-0.3.tar.gz
+pip3 install pyknp-0.3.tar.gz
 ```
 
 # Inference
