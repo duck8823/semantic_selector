@@ -3,6 +3,7 @@ import re
 import os
 import unicodedata
 import mysql.connector
+import mojimoji
 
 from pyknp import Jumanpp
 from bs4 import BeautifulSoup
@@ -29,7 +30,8 @@ class InputTagTokenizer(object):
                 "(",
                 ")",
                 "/",
-                "\n"
+                "\n",
+                "\t"
             ]
 
             url = urlparse('mysql://root@localhost:3306/translator')
@@ -51,6 +53,8 @@ class InputTagTokenizer(object):
                 for mrph in result.mrph_list():
                     if mrph.hinsi in ['名詞', '動詞', '形容詞'] or mrph.imis in ['品詞推定:名詞']:
                         word = mrph.midasi
+                        if word in self.exclude_words:
+                            continue
                         if self.__is_japanese(word):
                             word = self.__translate(word)
                         ret.append(word)
@@ -106,11 +110,18 @@ class InputTagTokenizer(object):
             s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
             return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
+        def __to_word(self, word):
+            if re.match(r'[^@]+@[^@]+\.[^@]+', word):
+                return 'e-mail'
+            return word
+
         def __preprocess(self, value):
+            value = self.__to_word(value)
             snake_case_value = self.__convert_to_snake(value)
             snake_case_value = re.sub(r'([0-9]+)', r'_\1', snake_case_value)
             tokens = re.split(r'[-_\]\[ ]', snake_case_value)
             for t in tokens:
+                t = mojimoji.han_to_zen(t)
                 japanese_tokens = self.jumanpp_tokenize(t)
                 for j_t in japanese_tokens:
                     if j_t in self.exclude_words:
@@ -121,8 +132,6 @@ class InputTagTokenizer(object):
             cursor = self.connection.cursor(dictionary=True)
             cursor.execute('SELECT * FROM dictionary WHERE japanese = %s', [word])
             translated = cursor.fetchone()
-            print(cursor.statement)
-            print(translated)
             if translated is not None:
                 return translated['english']
             translated = self.translator.translate(text=word, lang_from='ja', lang_to='en')
@@ -143,7 +152,6 @@ class InputTagTokenizer(object):
                         or "KATAKANA" in name:
                     return True
             return False
-
 
     instance = None
 
