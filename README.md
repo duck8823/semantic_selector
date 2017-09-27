@@ -10,6 +10,9 @@ brew install mysql pyenv mecab mecab-ipadic
 mysql -uxxx -p -e 'create database register_form'
 mysql -uxxx -p register_form < data/register_form.sql
 
+mysql -uxxx -p -e 'create database translator'
+mysql -uxxx -p -e 'create table translator.dictionary (japanese text, english text)'
+
 # python3.5+
 pyenv install 3.5.2
 pyenv local 3.5.2

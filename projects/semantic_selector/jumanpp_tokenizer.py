@@ -2,9 +2,12 @@
 import re
 import os
 import unicodedata
+import mysql.connector
+
 from pyknp import Jumanpp
 from bs4 import BeautifulSoup
 from mstranslator import Translator
+from urllib.parse import urlparse
 
 
 class InputTagTokenizer(object):
@@ -29,6 +32,15 @@ class InputTagTokenizer(object):
                 "\n"
             ]
 
+            url = urlparse('mysql://root@localhost:3306/translator')
+            self.connection = mysql.connector.connect(
+                host=url.hostname or 'localhost',
+                port=url.port or 3306,
+                user=url.username or 'root',
+                password=url.password or '',
+                database=url.path[1:],
+            )
+
         def jumanpp_tokenize(self, text):
             ret = []
             if not text.rstrip():
@@ -40,7 +52,7 @@ class InputTagTokenizer(object):
                     if mrph.hinsi in ['名詞', '動詞', '形容詞'] or mrph.imis in ['品詞推定:名詞']:
                         word = mrph.midasi
                         if self.__is_japanese(word):
-                            word = self.translator.translate(text=mrph.midasi, lang_from='ja', lang_to='en')
+                            word = self.__translate(word)
                         ret.append(word)
 
             except IndexError:
@@ -104,6 +116,23 @@ class InputTagTokenizer(object):
                     if j_t in self.exclude_words:
                         continue
                     yield j_t
+
+        def __translate(self, word):
+            cursor = self.connection.cursor(dictionary=True)
+            cursor.execute('SELECT * FROM dictionary WHERE japanese = %s', [word])
+            translated = cursor.fetchone()
+            print(cursor.statement)
+            print(translated)
+            if translated is not None:
+                return translated['english']
+            translated = self.translator.translate(text=word, lang_from='ja', lang_to='en')
+            try:
+                cursor.execute('INSERT INTO dictionary (japanese, english) VALUES (%s, %s)', [word, translated])
+                self.connection.commit()
+            except:
+                self.connection.rollback()
+                raise
+            return translated
 
         @staticmethod
         def __is_japanese(text):
