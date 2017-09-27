@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 import re
+import os
+import unicodedata
 from pyknp import Jumanpp
 from bs4 import BeautifulSoup
+from mstranslator import Translator
 
 
 class InputTagTokenizer(object):
     class __InputTagTokenizer(object):
         def __init__(self):
             self.tokenizer = Jumanpp()
+            self.translator = Translator(os.environ['TRANSLATOR_TEXT_API_KEY'])
             self.target_attributes = [
                 'name',
                 'type',
@@ -34,7 +38,10 @@ class InputTagTokenizer(object):
                 result = self.tokenizer.analysis(text)
                 for mrph in result.mrph_list():
                     if mrph.hinsi in ['名詞', '動詞', '形容詞'] or mrph.imis in ['品詞推定:名詞']:
-                        ret.append(mrph.midasi)
+                        word = mrph.midasi
+                        if self.__is_japanese(word):
+                            word = self.translator.translate(text=mrph.midasi, lang_from='ja', lang_to='en')
+                        ret.append(word)
 
             except IndexError:
                 print("[WARN] That was no valid value :" + text)
@@ -97,6 +104,17 @@ class InputTagTokenizer(object):
                     if j_t in self.exclude_words:
                         continue
                     yield j_t
+
+        @staticmethod
+        def __is_japanese(text):
+            for ch in text:
+                name = unicodedata.name(ch)
+                if "CJK UNIFIED" in name \
+                        or "HIRAGANA" in name \
+                        or "KATAKANA" in name:
+                    return True
+            return False
+
 
     instance = None
 
